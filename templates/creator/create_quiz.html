@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% block title %}Create Quiz — ThinkSprint{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <h1 class="text-2xl font-bold text-gray-900 mb-1">Create a New Quiz</h1>
+  <p class="text-gray-500 text-sm mb-6">Add questions and configure your quiz settings.</p>
+
+  <form method="POST" id="quizForm" class="space-y-6" enctype="multipart/form-data" novalidate>
+
+    <!-- Quiz Settings -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <h2 class="font-semibold text-gray-800 text-lg">Quiz Settings</h2>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
+        <input type="text" name="title" required placeholder="e.g. Python Basics Quiz"
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea name="description" rows="2" placeholder="Optional description..."
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Timer per Question (seconds)</label>
+          <input type="number" name="timer_per_question" value="30" min="5" max="300"
+                 class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div id="joinWindowWrap">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Join Window</label>
+          <select name="join_window_minutes" id="join_window_minutes"
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="5">5 minutes</option>
+            <option value="10" selected>10 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60">60 minutes</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-3 pt-6">
+          <input type="checkbox" name="allow_multiple_attempts" id="allow_multiple"
+                 class="w-4 h-4 text-indigo-600 rounded" />
+          <label for="allow_multiple" class="text-sm text-gray-700">Allow multiple attempts</label>
+        </div>
+      </div>
+
+      <!-- Bonus System -->
+      <div class="border-t border-gray-100 pt-4">
+        <div class="flex items-center gap-3 mb-3">
+          <input type="checkbox" name="bonus_enabled" id="bonus_enabled" checked
+                 class="w-4 h-4 text-indigo-600 rounded" onchange="toggleBonus(this)" />
+          <label for="bonus_enabled" class="text-sm font-medium text-gray-700">Enable Bonus System</label>
+        </div>
+        <div id="bonusConfig" class="ml-7">
+          <p class="text-xs text-gray-500 mb-2">
+            Bonus is awarded to the participant with the highest score AND least time (min. 2 participants).
+          </p>
+          <div class="flex items-center gap-3">
+            <label class="text-sm text-gray-700">Bonus Points:</label>
+            <input type="number" name="bonus_points" value="2" min="1" max="100" id="bonusPoints"
+                   class="w-24 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Shuffle Questions -->
+      <div class="border-t border-gray-100 pt-4">
+        <div class="flex items-start gap-3">
+          <input type="checkbox" name="shuffle_questions" id="shuffle_questions" checked
+                 class="w-4 h-4 text-indigo-600 rounded mt-0.5" />
+          <div>
+            <label for="shuffle_questions" class="text-sm font-medium text-gray-700">Shuffle Question Order</label>
+            <p class="text-xs text-gray-500 mt-0.5">
+              When enabled and 2 or more participants have joined, each participant sees questions in a different random order. Prevents copying answers.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Negative Marking -->
+      <div class="border-t border-gray-100 pt-4">
+        <div class="flex items-center gap-3 mb-3">
+          <input type="checkbox" name="negative_marking" id="negative_marking"
+                 class="w-4 h-4 text-indigo-600 rounded" onchange="toggleNegative(this)" />
+          <label for="negative_marking" class="text-sm font-medium text-gray-700">Enable Negative Marking</label>
+        </div>
+        <div id="negativeConfig" class="ml-7 hidden">
+          <div class="flex items-center gap-3">
+            <label class="text-sm text-gray-700">Penalty per wrong answer:</label>
+            <input type="number" name="negative_penalty" value="0.5" min="0.1" max="10" step="0.25" id="negativePenalty"
+                   class="w-24 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <span class="text-sm text-gray-500">points</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Public Listing -->
+      <div class="border-t border-gray-100 pt-4">
+        <div class="flex items-start gap-3">
+          <input type="checkbox" name="is_public" id="is_public"
+                 class="w-4 h-4 text-indigo-600 rounded mt-0.5"
+                 onchange="togglePublic(this)" />
+          <div>
+            <label for="is_public" class="text-sm font-medium text-gray-700">List on Public Quiz Page</label>
+            <p class="text-xs text-gray-500 mt-0.5">
+              Quiz becomes permanently active and open to anyone — no join code or time window needed.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Questions -->
+    <div id="questionsContainer" class="space-y-4">
+      <!-- Questions added dynamically -->
+    </div>
+
+    <button type="button" onclick="addQuestion()"
+            class="w-full border-2 border-dashed border-indigo-300 hover:border-indigo-500 text-indigo-600 hover:text-indigo-700 font-medium py-3 rounded-xl transition text-sm">
+      + Add Question
+    </button>
+
+    <div class="flex gap-3">
+      <button type="submit" id="createQuizBtn"
+              class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition">
+        Create Quiz
+      </button>
+      <a href="{{ url_for('dashboard') }}"
+         class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition text-sm flex items-center">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let questionCount = 0;
+  let optionCounts  = {};
+
+  // ── Toggle helpers ─────────────────────────────────────────────────────────
+  function toggleBonus(checkbox) {
+    document.getElementById('bonusConfig').style.display = checkbox.checked ? 'block' : 'none';
+    document.getElementById('bonusPoints').disabled = !checkbox.checked;
+  }
+
+  function toggleNegative(checkbox) {
+    document.getElementById('negativeConfig').classList.toggle('hidden', !checkbox.checked);
+    document.getElementById('negativePenalty').disabled = !checkbox.checked;
+  }
+
+  function togglePublic(checkbox) {
+    const joinWrap   = document.getElementById('joinWindowWrap');
+    const joinSelect = document.getElementById('join_window_minutes');
+    const multiCheck = document.getElementById('allow_multiple');
+    if (checkbox.checked) {
+      joinWrap.style.display         = 'none';
+      joinSelect.style.pointerEvents = 'none';
+      joinSelect.tabIndex            = -1;
+      multiCheck.checked             = true;
+    } else {
+      joinWrap.style.display         = '';
+      joinSelect.style.pointerEvents = '';
+      joinSelect.tabIndex            = 0;
+    }
+  }
+
+  // ── Show spinner on submit ─────────────────────────────────────────────────
+  document.getElementById('quizForm').addEventListener('submit', function () {
+    const btn = document.getElementById('createQuizBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Creating...';
+    btn.classList.add('opacity-75', 'cursor-not-allowed');
+  });
+
+  // ── Question builder ───────────────────────────────────────────────────────
+  function addQuestion() {
+    const idx       = questionCount++;
+    const container = document.getElementById('questionsContainer');
+    const div       = document.createElement('div');
+    div.className   = 'bg-white rounded-2xl border border-gray-100 shadow-sm p-6';
+    div.id          = 'question_' + idx;
+    div.innerHTML   = `
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-gray-800">Question ${idx + 1}</h3>
+        <button type="button" onclick="removeQuestion(${idx})"
+                class="text-xs text-red-500 hover:text-red-700">Remove</button>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Question Text <span class="text-red-500">*</span></label>
+        <textarea name="question_text[]" rows="2" placeholder="Enter your question..."
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Question Image <span class="text-gray-400 font-normal">(optional)</span></label>
+        <input type="file" name="question_image[]" accept="image/*"
+               class="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+               onchange="previewImage(this, 'preview_${idx}')" />
+        <img id="preview_${idx}" src="" alt="" class="hidden mt-2 max-h-40 rounded-lg border border-gray-200 object-contain" />
+      </div>
+      <div class="space-y-2" id="options_${idx}">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Options <span class="text-gray-400 font-normal">(select the correct one)</span></label>
+      </div>
+      <button type="button" onclick="addOption(${idx})"
+              class="mt-3 text-xs text-indigo-600 hover:text-indigo-800 font-medium">+ Add Option</button>
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Explanation <span class="text-gray-400 font-normal">(optional — shown to participants after submission)</span>
+        </label>
+        <textarea name="explanation[]" rows="2" placeholder="e.g. The correct answer is X because..."
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none bg-amber-50 border-amber-200"></textarea>
+      </div>
+    `;
+    container.appendChild(div);
+    for (let i = 0; i < 4; i++) addOption(idx);
+  }
+
+  function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = e => { preview.src = e.target.result; preview.classList.remove('hidden'); };
+      reader.readAsDataURL(input.files[0]);
+    } else {
+      preview.src = ''; preview.classList.add('hidden');
+    }
+  }
+
+  function addOption(qIdx) {
+    if (!optionCounts[qIdx]) optionCounts[qIdx] = 0;
+    const oIdx      = optionCounts[qIdx]++;
+    const container = document.getElementById('options_' + qIdx);
+    const div       = document.createElement('div');
+    div.className   = 'flex items-center gap-3';
+    div.id          = 'option_' + qIdx + '_' + oIdx;
+    div.innerHTML   = `
+      <input type="radio" name="correct_option_${qIdx}" value="${oIdx}"
+             class="w-4 h-4 text-indigo-600" title="Mark as correct" />
+      <input type="text" name="option_text_${qIdx}[]" placeholder="Option ${oIdx + 1}"
+             class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      <button type="button" onclick="removeOption('option_${qIdx}_${oIdx}')"
+              class="text-gray-400 hover:text-red-500 text-xs">✕</button>
+    `;
+    container.appendChild(div);
+  }
+
+  function removeOption(id) { const el = document.getElementById(id); if (el) el.remove(); }
+  function removeQuestion(idx) { const el = document.getElementById('question_' + idx); if (el) el.remove(); }
+
+  addQuestion();
+</script>
+{% endblock %}

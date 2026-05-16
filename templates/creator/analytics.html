@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Analytics — {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-6">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <a href="{{ url_for('dashboard') }}" class="text-sm text-gray-400 hover:text-indigo-600 transition">Dashboard</a>
+        <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <a href="{{ url_for('manage_quiz', quiz_id=quiz.id) }}" class="text-sm text-gray-400 hover:text-indigo-600 transition">Manage</a>
+        <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        <span class="text-sm text-gray-600 font-medium">Analytics</span>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-900">Question Analytics</h1>
+      <p class="text-gray-500 text-sm mt-1">{{ quiz.title }} — {{ total_submitted }} submission{{ 's' if total_submitted != 1 }}</p>
+    </div>
+    <a href="{{ url_for('manage_quiz', quiz_id=quiz.id) }}"
+       class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-xl transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      Back
+    </a>
+  </div>
+
+  {% if total_submitted == 0 %}
+  <div class="text-center py-20 text-gray-400">
+    <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    </svg>
+    <p class="text-lg font-semibold text-gray-600 mb-1">No data yet</p>
+    <p class="text-sm">Analytics will appear once participants submit the quiz.</p>
+  </div>
+
+  {% else %}
+  <div class="space-y-4">
+    {% for item in analytics %}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+
+      <!-- Question header -->
+      <div class="flex items-start justify-between gap-4 mb-4">
+        <div class="flex-1">
+          <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Q{{ loop.index }}</span>
+          <p class="text-sm font-semibold text-gray-900 mt-0.5 leading-relaxed">{{ item.question.question_text }}</p>
+        </div>
+        <!-- Difficulty badge based on % correct -->
+        {% if item.pct_correct >= 70 %}
+          <span class="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">Easy</span>
+        {% elif item.pct_correct >= 40 %}
+          <span class="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">Medium</span>
+        {% else %}
+          <span class="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Hard</span>
+        {% endif %}
+      </div>
+
+      <!-- Stats row -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div class="bg-green-50 rounded-xl p-3 text-center">
+          <p class="text-2xl font-extrabold text-green-600">{{ item.pct_correct }}%</p>
+          <p class="text-xs text-gray-500 mt-0.5 font-medium">Correct</p>
+          <p class="text-xs text-gray-400">{{ item.correct }}/{{ item.total }}</p>
+        </div>
+        <div class="bg-red-50 rounded-xl p-3 text-center">
+          <p class="text-2xl font-extrabold text-red-500">{{ item.wrong }}</p>
+          <p class="text-xs text-gray-500 mt-0.5 font-medium">Wrong</p>
+          <p class="text-xs text-gray-400">{{ ((item.wrong / item.total * 100) | round | int) if item.total else 0 }}%</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3 text-center">
+          <p class="text-2xl font-extrabold text-gray-500">{{ item.skipped }}</p>
+          <p class="text-xs text-gray-500 mt-0.5 font-medium">Skipped</p>
+          <p class="text-xs text-gray-400">{{ ((item.skipped / item.total * 100) | round | int) if item.total else 0 }}%</p>
+        </div>
+        <div class="bg-indigo-50 rounded-xl p-3 text-center">
+          <p class="text-2xl font-extrabold text-indigo-600">{{ item.avg_time }}s</p>
+          <p class="text-xs text-gray-500 mt-0.5 font-medium">Avg Time</p>
+          <p class="text-xs text-gray-400">per answer</p>
+        </div>
+      </div>
+
+      <!-- Correct % bar -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+          <span>Correct rate</span>
+          <span class="font-semibold">{{ item.pct_correct }}%</span>
+        </div>
+        <div class="w-full bg-gray-100 rounded-full h-2">
+          <div class="h-2 rounded-full transition-all
+            {% if item.pct_correct >= 70 %}bg-green-500
+            {% elif item.pct_correct >= 40 %}bg-amber-400
+            {% else %}bg-red-500{% endif %}"
+            style="width: {{ item.pct_correct }}%"></div>
+        </div>
+      </div>
+
+      <!-- Most common wrong answer -->
+      {% if item.top_wrong %}
+      <div class="flex items-center gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Most common wrong answer: <strong class="ml-1">{{ item.top_wrong }}</strong>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

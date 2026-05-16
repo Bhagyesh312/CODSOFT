@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Edit Quiz — ThinkSprint{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+  <h1 class="text-2xl font-bold text-gray-900 mb-1">Edit Quiz</h1>
+  <p class="text-gray-500 text-sm mb-6">Update quiz settings. Questions cannot be edited here — delete and recreate if needed.</p>
+
+  <form method="POST" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+      <input type="text" name="title" value="{{ quiz.title }}" required
+             class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+      <textarea name="description" rows="2"
+                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">{{ quiz.description or '' }}</textarea>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Timer per Question (seconds)</label>
+      <input type="number" name="timer_per_question" value="{{ quiz.timer_per_question }}" min="5" max="300"
+             class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+    </div>
+
+    <div id="joinWindowWrap" {% if quiz.is_public %}style="display:none"{% endif %}>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Join Window</label>
+      <select name="join_window_minutes" id="join_window_minutes"
+              class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              {% if quiz.is_public %}style="pointer-events:none" tabindex="-1"{% endif %}>
+        <option value="5"  {% if quiz.join_window_minutes == 5  %}selected{% endif %}>5 minutes</option>
+        <option value="10" {% if quiz.join_window_minutes == 10 %}selected{% endif %}>10 minutes</option>
+        <option value="30" {% if quiz.join_window_minutes == 30 %}selected{% endif %}>30 minutes</option>
+        <option value="60" {% if quiz.join_window_minutes == 60 %}selected{% endif %}>60 minutes</option>
+      </select>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <input type="checkbox" name="allow_multiple_attempts" id="allow_multiple"
+             class="w-4 h-4 text-indigo-600 rounded"
+             {% if quiz.allow_multiple_attempts %}checked{% endif %} />
+      <label for="allow_multiple" class="text-sm text-gray-700">Allow multiple attempts</label>
+    </div>
+    <div class="border-t border-gray-100 pt-4">
+      <div class="flex items-center gap-3 mb-3">
+        <input type="checkbox" name="bonus_enabled" id="bonus_enabled"
+               class="w-4 h-4 text-indigo-600 rounded"
+               {% if quiz.bonus_enabled %}checked{% endif %}
+               onchange="toggleBonus(this)" />
+        <label for="bonus_enabled" class="text-sm font-medium text-gray-700">Enable Bonus System</label>
+      </div>
+      <div id="bonusConfig" class="ml-7" {% if not quiz.bonus_enabled %}style="display:none"{% endif %}>
+        <div class="flex items-center gap-3">
+          <label class="text-sm text-gray-700">Bonus Points:</label>
+          <input type="number" name="bonus_points" value="{{ quiz.bonus_points or 2 }}" min="1" max="100" id="bonusPoints"
+                 class="w-24 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                 {% if not quiz.bonus_enabled %}disabled{% endif %} />
+        </div>
+      </div>
+    </div>
+
+    <!-- Shuffle Questions -->
+    <div class="border-t border-gray-100 pt-4">
+      <div class="flex items-start gap-3">
+        <input type="checkbox" name="shuffle_questions" id="shuffle_questions"
+               class="w-4 h-4 text-indigo-600 rounded mt-0.5"
+               {% if quiz.shuffle_questions %}checked{% endif %} />
+        <div>
+          <label for="shuffle_questions" class="text-sm font-medium text-gray-700">Shuffle Question Order</label>
+          <p class="text-xs text-gray-500 mt-0.5">
+            When enabled and 2 or more participants have joined, each participant sees questions in a different random order.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Negative Marking -->
+    <div class="border-t border-gray-100 pt-4">
+      <div class="flex items-center gap-3 mb-3">
+        <input type="checkbox" name="negative_marking" id="negative_marking"
+               class="w-4 h-4 text-indigo-600 rounded"
+               {% if quiz.negative_marking %}checked{% endif %}
+               onchange="toggleNegative(this)" />
+        <label for="negative_marking" class="text-sm font-medium text-gray-700">Enable Negative Marking</label>
+      </div>
+      <div id="negativeConfig" class="ml-7 {% if not quiz.negative_marking %}hidden{% endif %}">
+        <div class="flex items-center gap-3">
+          <label class="text-sm text-gray-700">Penalty per wrong answer:</label>
+          <input type="number" name="negative_penalty" value="{{ quiz.negative_penalty or 0.5 }}"
+                 min="0.1" max="10" step="0.25" id="negativePenalty"
+                 class="w-24 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                 {% if not quiz.negative_marking %}disabled{% endif %} />
+          <span class="text-sm text-gray-500">points</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Public Listing -->
+    <div class="border-t border-gray-100 pt-4">
+      <div class="flex items-start gap-3">
+        <input type="checkbox" name="is_public" id="is_public"
+               class="w-4 h-4 text-indigo-600 rounded mt-0.5"
+               {% if quiz.is_public %}checked{% endif %}
+               onchange="togglePublic(this)" />
+        <div>
+          <label for="is_public" class="text-sm font-medium text-gray-700">List on Public Quiz Page</label>
+          <p class="text-xs text-gray-500 mt-0.5">
+            Quiz becomes permanently active and open to anyone — no join code or time window needed.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <button type="submit"
+              class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition">
+        Save Changes
+      </button>
+      <a href="{{ url_for('manage_quiz', quiz_id=quiz.id) }}"
+         class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition text-sm flex items-center">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function toggleBonus(checkbox) {
+    document.getElementById('bonusConfig').style.display = checkbox.checked ? 'block' : 'none';
+    document.getElementById('bonusPoints').disabled = !checkbox.checked;
+  }
+  function toggleNegative(checkbox) {
+    document.getElementById('negativeConfig').classList.toggle('hidden', !checkbox.checked);
+    document.getElementById('negativePenalty').disabled = !checkbox.checked;
+  }
+  function togglePublic(checkbox) {
+    const joinWrap   = document.getElementById('joinWindowWrap');
+    const joinSelect = document.getElementById('join_window_minutes');
+    const multiCheck = document.getElementById('allow_multiple');
+    if (checkbox.checked) {
+      joinWrap.style.display = 'none';
+      joinSelect.style.pointerEvents = 'none';
+      joinSelect.tabIndex = -1;
+      multiCheck.checked  = true;
+    } else {
+      joinWrap.style.display = '';
+      joinSelect.style.pointerEvents = '';
+      joinSelect.tabIndex = 0;
+    }
+  }
+</script>
+{% endblock %}

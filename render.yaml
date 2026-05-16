@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: thinksprint
+    env: python
+    buildCommand: "pip install -r requirements.txt && flask db upgrade"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: thinksprint-db
+          property: connectionString
+
+databases:
+  - name: thinksprint-db
+    databaseName: thinksprint
+    user: thinksprint

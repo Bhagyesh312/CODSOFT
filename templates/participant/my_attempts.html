@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}My Attempts — ThinkSprint{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">My Attempts</h1>
+      <p class="text-gray-500 text-sm mt-1">All quizzes you've taken.</p>
+    </div>
+    <a href="{{ url_for('join_quiz') }}"
+       class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-sm">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+      </svg>
+      Join a Quiz
+    </a>
+  </div>
+
+  {% if attempts %}
+    <div class="space-y-4">
+      {% for attempt in attempts %}
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-gray-900 truncate">{{ attempt.quiz.title }}</h3>
+            <div class="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              {{ attempt.taken_at.strftime('%d %b %Y at %I:%M %p') }}
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-5 text-center">
+            <div>
+              <p class="text-base font-bold text-gray-800">{{ attempt.score }}/{{ attempt.total }}</p>
+              <p class="text-xs text-gray-400">Correct</p>
+            </div>
+            <div>
+              <p class="text-base font-bold text-gray-800">{{ attempt.percentage }}%</p>
+              <p class="text-xs text-gray-400">Accuracy</p>
+            </div>
+            <div>
+              <p class="text-base font-bold text-gray-800">{{ attempt.time_taken }}s</p>
+              <p class="text-xs text-gray-400">Time</p>
+            </div>
+            {% if attempt.bonus_points > 0 %}
+            <div>
+              <p class="text-base font-bold text-amber-600">+{{ attempt.bonus_points }}</p>
+              <p class="text-xs text-gray-400">Bonus</p>
+            </div>
+            {% endif %}
+            <div>
+              <p class="text-base font-bold text-indigo-600">{{ attempt.final_score }}</p>
+              <p class="text-xs text-gray-400">Final</p>
+            </div>
+          </div>
+
+          <div class="flex gap-2 shrink-0">
+            <a href="{{ url_for('quiz_result', attempt_id=attempt.id) }}"
+               class="inline-flex items-center gap-1.5 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg transition font-medium">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              Result
+            </a>
+            <a href="{{ url_for('leaderboard', quiz_id=attempt.quiz_id) }}"
+               class="inline-flex items-center gap-1.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition font-medium">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Board
+            </a>
+          </div>
+        </div>
+
+        <!-- Score bar -->
+        <div class="mt-4">
+          <div class="w-full bg-gray-100 rounded-full h-1.5">
+            <div class="h-1.5 rounded-full score-bar-fill
+              {% if attempt.percentage >= 80 %}bg-green-500
+              {% elif attempt.percentage >= 50 %}bg-amber-400
+              {% else %}bg-red-400{% endif %}"
+              style="width: {{ attempt.percentage }}%"></div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-24 text-gray-400">
+      <div class="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+        <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        </svg>
+      </div>
+      <p class="text-lg font-semibold text-gray-600 mb-1">No attempts yet</p>
+      <p class="text-sm mb-6">Join a quiz to get started.</p>
+      <a href="{{ url_for('join_quiz') }}"
+         class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+        Join a Quiz
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

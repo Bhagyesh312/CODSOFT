@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Join Quiz — ThinkSprint{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
+
+    <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+      <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+      </svg>
+    </div>
+
+    <h2 class="text-2xl font-bold text-gray-900 mb-1">Join a Quiz</h2>
+    <p class="text-gray-500 text-sm mb-8">Enter the 6-character code shared by your quiz creator.</p>
+
+    <form method="POST" class="space-y-4" id="joinForm">
+      <div>
+        <input type="text" name="join_code" id="joinCodeInput" required maxlength="6" minlength="6"
+               placeholder="ABC123"
+               class="w-full border-2 border-gray-200 focus:border-indigo-500 rounded-xl px-4 py-4 text-center text-3xl font-extrabold tracking-widest uppercase font-mono focus:outline-none transition"
+               oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g,''); validateCode(this)" />
+        <p id="codeHint" class="text-xs text-gray-400 mt-2 text-center">3 letters followed by 3 numbers — e.g. ABC123</p>
+        <p id="codeError" class="text-xs text-red-500 mt-1 text-center hidden">Format must be 3 letters + 3 numbers (e.g. ABC123)</p>
+      </div>
+      <button type="submit" id="joinBtn"
+              class="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl transition shadow-sm shadow-indigo-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+        </svg>
+        Join Quiz
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function validateCode(input) {
+    const val = input.value;
+    const isComplete = /^[A-Z]{3}[0-9]{3}$/.test(val);
+    const error = document.getElementById('codeError');
+    const btn   = document.getElementById('joinBtn');
+    if (val.length === 6 && !isComplete) {
+      error.classList.remove('hidden');
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+      error.classList.add('hidden');
+      btn.disabled = false;
+      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+  }
+</script>
+{% endblock %}
